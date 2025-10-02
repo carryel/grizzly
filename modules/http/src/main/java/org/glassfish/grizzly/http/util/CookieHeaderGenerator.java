@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024 Contributors to the Eclipse Foundation
+ * Copyright (c) 2022, 2025 Contributors to the Eclipse Foundation
  * Copyright 2004, 2022 The Apache Software Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,14 +16,13 @@
  */
 package org.glassfish.grizzly.http.util;
 
-import java.text.DateFormat;
-import java.text.FieldPosition;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.BitSet;
-import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
-import java.util.TimeZone;
 
 /**
  * <p>Cookie header generator based on RFC6265</p>
@@ -42,16 +41,12 @@ public class CookieHeaderGenerator {
     public static final String COOKIE_SECURE_ATTR = "Secure";
     public static final String COOKIE_HTTP_ONLY_ATTR = "HttpOnly";
 
-    private static final String COOKIE_DATE_PATTERN = "EEE, dd-MMM-yyyy HH:mm:ss z";
+    private static final String COOKIE_DATE_PATTERN = "EEE, dd-MMM-yyyy HH:mm:ss O";
 
-    protected static final ThreadLocal<DateFormat> COOKIE_DATE_FORMAT =
-        ThreadLocal.withInitial(() -> {
-            DateFormat dateFormat = new SimpleDateFormat(COOKIE_DATE_PATTERN, Locale.US);
-            dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-            return dateFormat;
-        });
+    protected static final DateTimeFormatter COOKIE_DATE_FORMAT =
+            DateTimeFormatter.ofPattern(COOKIE_DATE_PATTERN, Locale.US).withZone(ZoneId.from(ZoneOffset.UTC));
 
-    protected static final String ANCIENT_DATE = COOKIE_DATE_FORMAT.get().format(new Date(10000));
+    protected static final String ANCIENT_DATE = COOKIE_DATE_FORMAT.format(Instant.ofEpochMilli(10000));
 
     private static final BitSet domainValid = new BitSet(128);
 
@@ -109,12 +104,7 @@ public class CookieHeaderGenerator {
                 if (maxAge == 0) {
                     header.append(ANCIENT_DATE);
                 } else {
-                    COOKIE_DATE_FORMAT
-                        .get()
-                        .format(
-                            new Date(System.currentTimeMillis() + maxAge * 1000L),
-                            header,
-                            new FieldPosition(0));
+                    header.append(COOKIE_DATE_FORMAT.format(Instant.now().plusSeconds(maxAge)));
                 }
             }
         }
