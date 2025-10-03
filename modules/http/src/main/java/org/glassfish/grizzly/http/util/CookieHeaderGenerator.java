@@ -41,7 +41,7 @@ public class CookieHeaderGenerator {
     public static final String COOKIE_SECURE_ATTR = "Secure";
     public static final String COOKIE_HTTP_ONLY_ATTR = "HttpOnly";
 
-    private static final String COOKIE_DATE_PATTERN = "EEE, dd-MMM-yyyy HH:mm:ss O";
+    private static final String COOKIE_DATE_PATTERN = "EEE, dd-MMM-yyyy HH:mm:ss 'GMT'";
 
     protected static final DateTimeFormatter COOKIE_DATE_FORMAT =
             DateTimeFormatter.ofPattern(COOKIE_DATE_PATTERN, Locale.US).withZone(ZoneId.from(ZoneOffset.UTC));

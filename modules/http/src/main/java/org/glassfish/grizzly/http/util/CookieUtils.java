@@ -69,7 +69,7 @@ public final class CookieUtils {
         }
     }
 
-    static final String OLD_COOKIE_PATTERN = "EEE, dd-MMM-yyyy HH:mm:ss O";
+    static final String OLD_COOKIE_PATTERN = "EEE, dd-MMM-yyyy HH:mm:ss 'GMT'";
 
     public static final DateTimeFormatter OLD_COOKIE_FORMAT =
             DateTimeFormatter.ofPattern(OLD_COOKIE_PATTERN, Locale.US).withZone(ZoneId.from(ZoneOffset.UTC));

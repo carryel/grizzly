@@ -20,8 +20,7 @@ package org.glassfish.grizzly.http;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeParseException;
 
 import org.glassfish.grizzly.Buffer;
@@ -299,8 +298,9 @@ public class CookiesTest extends TestCase {
 
     private static int expire2MaxAge(String expire) {
         try {
-            return (int) Duration.between(Instant.now(), LocalDateTime.parse(expire, CookieUtils.OLD_COOKIE_FORMAT)
-                                                                      .toInstant(ZoneOffset.UTC)).toSeconds();
+            return (int) Duration.between(Instant.now(),
+                                          ZonedDateTime.parse(expire, CookieUtils.OLD_COOKIE_FORMAT).toInstant())
+                                 .toSeconds();
         } catch (DateTimeParseException ex) {
             throw new IllegalArgumentException("Illegal expire value: " + expire);
         }

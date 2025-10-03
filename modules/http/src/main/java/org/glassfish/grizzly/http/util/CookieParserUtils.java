@@ -28,8 +28,7 @@ import static org.glassfish.grizzly.http.util.CookieUtils.isSeparator;
 import static org.glassfish.grizzly.http.util.CookieUtils.isWhiteSpace;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -911,8 +910,8 @@ public class CookieParserUtils {
 
                         final String expiresDate = new String(bytes, valueStart, valueEnd - valueStart, Charsets.ASCII_CHARSET);
                         cookie.setMaxAge(getMaxAgeDelta(
-                                LocalDateTime.parse(expiresDate, OLD_COOKIE_FORMAT).toInstant(ZoneOffset.UTC)
-                                             .toEpochMilli(), Instant.now().toEpochMilli()) / 1000);
+                                ZonedDateTime.parse(expiresDate, OLD_COOKIE_FORMAT).toInstant().toEpochMilli(),
+                                Instant.now().toEpochMilli()) / 1000);
                     } catch (DateTimeParseException ignore) {
                     }
 
@@ -1154,8 +1153,8 @@ public class CookieParserUtils {
 
                         final String expiresDate = buffer.toStringContent(Charsets.ASCII_CHARSET, valueStart, valueEnd);
                         cookie.setMaxAge(getMaxAgeDelta(
-                                LocalDateTime.parse(expiresDate, OLD_COOKIE_FORMAT).toInstant(ZoneOffset.UTC)
-                                             .toEpochMilli(), Instant.now().toEpochMilli()) / 1000);
+                                ZonedDateTime.parse(expiresDate, OLD_COOKIE_FORMAT).toInstant().toEpochMilli(),
+                                Instant.now().toEpochMilli()) / 1000);
                     } catch (DateTimeParseException ignore) {
                     }
 
@@ -1390,8 +1389,8 @@ public class CookieParserUtils {
                         pos = valueEnd + 1;
                         final String expiresDate = cookiesStr.substring(valueStart, valueEnd);
                         cookie.setMaxAge(getMaxAgeDelta(
-                                LocalDateTime.parse(expiresDate, OLD_COOKIE_FORMAT).toInstant(ZoneOffset.UTC)
-                                             .toEpochMilli(), Instant.now().toEpochMilli()) / 1000);
+                                ZonedDateTime.parse(expiresDate, OLD_COOKIE_FORMAT).toInstant().toEpochMilli(),
+                                Instant.now().toEpochMilli()) / 1000);
                     } catch (DateTimeParseException ignore) {
                     }
 
