@@ -23,9 +23,12 @@ import org.junit.Test;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.IntConsumer;
+import java.util.function.Supplier;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -44,9 +47,10 @@ public class HttpDateFormatTest {
         assertEquals(FastHttpDateFormat.parseDate(sampleDate, null), HttpDateFormat.parseDate(sampleDate, null));
 
         // check initial current date
-        final byte[] initFastDateBytes = FastHttpDateFormat.getCurrentDateBytes();
-        final byte[] initHttpDateBytes = HttpDateFormat.getCurrentDateBytes();
-        assertArrayEquals(initFastDateBytes, initHttpDateBytes);
+        final Object[] initDates = performSimultaneously(
+                new Supplier[]{FastHttpDateFormat::getCurrentDateBytes, HttpDateFormat::getCurrentDateBytes});
+        assertEquals(2, initDates.length);
+        assertArrayEquals((byte[]) initDates[0], (byte[]) initDates[1]);
         final String initFastDate = FastHttpDateFormat.getCurrentDate();
         final String initHttpDate = HttpDateFormat.getCurrentDate();
         assertEquals(initFastDate, initHttpDate);
@@ -57,10 +61,12 @@ public class HttpDateFormatTest {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+
         // check re-generated current date
-        final byte[] currentFastDateBytes = FastHttpDateFormat.getCurrentDateBytes();
-        final byte[] currentHttpDateBytes = HttpDateFormat.getCurrentDateBytes();
-        assertArrayEquals(currentFastDateBytes, currentHttpDateBytes);
+        final Object[] currentDates = performSimultaneously(
+                new Supplier[]{FastHttpDateFormat::getCurrentDateBytes, HttpDateFormat::getCurrentDateBytes});
+        assertEquals(2, currentDates.length);
+        assertArrayEquals((byte[]) currentDates[0], (byte[]) currentDates[1]);
         final String currentFastDate = FastHttpDateFormat.getCurrentDate();
         final String currentHttpDate = HttpDateFormat.getCurrentDate();
         assertEquals(currentFastDate, currentHttpDate);
@@ -115,6 +121,22 @@ public class HttpDateFormatTest {
             System.out.println("Time elapsed for HttpDateFormat with " + numberOfThreads + " threads and " +
                                numberOfTryCountPerThread + " tries per thread: " + timeElapsed + " ms");
         }
+    }
+
+    private static Object[] performSimultaneously(final Supplier[] actions) {
+        if (actions == null || actions.length == 0) {
+            return new Object[0];
+        }
+        final CountDownLatch latch = new CountDownLatch(actions.length);
+        return Stream.of(actions).parallel().map(action -> {
+            latch.countDown();
+            try {
+                assertTrue(latch.await(3000L, TimeUnit.MILLISECONDS));
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            return action.get();
+        }).toList().toArray(new Object[0]);
     }
 
     private static long getMeasureTimeInMillis(final int numberOfThreads, final int numberOfTryCountPerThread,
